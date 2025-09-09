@@ -27,7 +27,7 @@ def select_folder():
 def update_values():
     config["input_value"] = title_entry.get()
     messagebox.showinfo("Configuration Updated", f"Barcode(s) to generate: {config['input_value']}\nFolder selected: {config['setting']}")
-    tk.Button(root, text="Generate Barcodes", command=generate_barcodes).pack(pady=5)
+    bntGenerator.pack(pady=5)
 
 
 def shorten_path(path, max_length=30):
@@ -41,6 +41,8 @@ def generate_barcodes():
         
     n=config['input_value']
     carpeta_destino=config['setting']
+    bntGenerator.pack_forget()
+
     for i in range(0, nm := int(n)):
         # Generar número aleatorio de 12 dígitos (el 13° lo calcula EAN13)
         numero = ''.join([str(random.randint(0, 9)) for _ in range(12)])
@@ -53,7 +55,6 @@ def generate_barcodes():
         ruta_completa = os.path.join(carpeta_destino, archive_name)
 
         codigo.save(ruta_completa)
-    tk.Button(root, text="Generate Barcodes", command=generate_barcodes).pack_forget()
     messagebox.showinfo("Success",f"{(nm)} barcodes succesfully generated and saved in {(carpeta_destino)}")
 
 root = tk.Tk()
@@ -73,7 +74,8 @@ label_folder = tk.Label(root, text="No folder selected.")
 label_folder.pack(pady=10)
 
 tk.Button(root, text="Update Configuration", command=update_values).pack(pady=5)
-tk.Button(root, text="Generate Barcodes", command=generate_barcodes).pack_forget()
+bntGenerator = tk.Button(root, text="Generate Barcodes", command=generate_barcodes)
+bntGenerator.pack_forget()
 
 
 root.mainloop()
