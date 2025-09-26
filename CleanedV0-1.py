@@ -1,0 +1,188 @@
+import os
+import random
+from barcode import EAN13
+from barcode.writer import ImageWriter
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import filedialog
+from tkinter import ttk
+import threading
+import time
+
+config = {
+    "input_value": "1",
+    "setting": ""
+}
+
+def only_integer(char):
+    return char.isdigit()
+
+def select_folder():
+    folder_selected = filedialog.askdirectory(title="Select Folder")
+    if folder_selected:
+        config["setting"] = folder_selected
+        messagebox.showinfo("Folder Selected", f"Selected Folder: {config['setting']}")
+        label_folder.config(text=f"Selected Folder:\n {shorten_path(config['setting'])}")
+
+def update_values():
+    config["input_value"] = title_entry.get()
+    messagebox.showinfo("Configuration Updated", f"Barcode(s) to generate: {config['input_value']}\nFolder selected: {config['setting']}")
+    bntGenerator.pack(pady=5)
+
+def shorten_path(path, max_length=30):
+    if len(path) <= max_length:
+        return path
+    else:
+        part_length = (max_length - 3) // 2
+        return f"{path[:part_length]}...{path[-part_length:]}"
+
+def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, status_label):
+    """Function to run barcode generation in a separate thread"""
+    try:
+        nm = int(n)
+        
+        for i in range(nm):
+            # Update progress
+            progress_percentage = (i / nm) * 100
+            progress_bar['value'] = progress_percentage
+            status_label.config(text=f"Generating barcode {i+1} of {nm}...")
+            progress_window.update()
+            
+            # Generate random 12-digit number (EAN13 calculates the 13th)
+            numero = ''.join([str(random.randint(0, 9)) for _ in range(12)])
+            
+            # Create EAN13 barcode with PNG image
+            codigo = EAN13(numero, writer=ImageWriter())
+            
+            # Save to specified folder
+            archive_name = f"Codigo_{i+1:03d}"
+            ruta_completa = os.path.join(carpeta_destino, archive_name)
+            codigo.save(ruta_completa)
+            
+        
+        # Complete progress
+        progress_bar['value'] = 100
+        status_label.config(text=f"Complete! Generated {nm} barcodes.")
+        progress_window.update()
+        
+        # Wait a moment before closing
+        time.sleep(1)
+        
+        # Close progress window and show success message
+        progress_window.destroy()
+        messagebox.showinfo("Success", f"{nm} barcodes successfully generated and saved in {carpeta_destino}")
+        
+    except Exception as e:
+        progress_window.destroy()
+        messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+def generate_barcodes():
+    n = config['input_value']
+    carpeta_destino = config['setting']
+    
+    # Validate inputs
+    if not carpeta_destino:
+        messagebox.showerror("Error", "Please select a folder first.")
+        return
+    
+    try:
+        nm = int(n)
+        if nm <= 0:
+            messagebox.showerror("Error", "Please enter a positive number.")
+            return
+    except ValueError:
+        messagebox.showerror("Error", "Please enter a valid number.")
+        return
+    
+    # Hide the generate button
+    bntGenerator.pack_forget()
+    
+    # Create progress window
+    progress_window = tk.Toplevel(root)
+    progress_window.title("Generating Barcodes")
+    progress_window.geometry("400x150")
+    progress_window.resizable(False, False)
+    progress_window.transient(root)
+    progress_window.grab_set()
+    
+    # Center the progress window
+    progress_window.geometry("+%d+%d" % (root.winfo_rootx() + 50, root.winfo_rooty() + 50))
+    
+    # Progress window content
+    tk.Label(progress_window, text="Generating Barcodes...", font=("Arial", 12, "bold")).pack(pady=10)
+    
+    # Progress bar
+    progress_bar = ttk.Progressbar(progress_window, length=300, mode='determinate')
+    progress_bar.pack(pady=10)
+    
+    # Status label
+    status_label = tk.Label(progress_window, text="Starting generation...")
+    status_label.pack(pady=5)
+    
+    # Cancel button (optional)
+    def cancel_generation():
+        progress_window.destroy()
+        bntGenerator.pack(pady=5)  # Show the generate button again
+    
+    tk.Button(progress_window, text="Cancel", command=cancel_generation).pack(pady=5)
+    
+    # Start generation in a separate thread
+    thread = threading.Thread(
+        target=generate_barcodes_thread, 
+        args=(n, carpeta_destino, progress_window, progress_bar, status_label)
+    )
+    thread.daemon = True
+    thread.start()
+    
+    # Function to check if thread is still alive and re-enable button if needed
+    def check_thread():
+        if thread.is_alive():
+            root.after(100, check_thread)
+        else:
+            bntGenerator.pack(pady=5)  # Re-enable the generate button
+    
+    check_thread()
+
+# Main window
+root = tk.Tk()
+root.title("Barcode Generator - Configuration Window")
+root.geometry("450x450")
+root.resizable(False, False)
+
+# Title
+title_label = tk.Label(root, text="Barcode Generator", font=("Arial", 16, "bold"))
+title_label.pack(pady=10)
+
+# Selection of the quantity of barcodes to generate
+tk.Label(root, text="Quantity of barcodes to generate:", font=("Arial", 10)).pack(pady=5)
+title_entry = tk.Entry(root, font=("Arial", 10), width=20)
+title_entry.pack(pady=5)
+title_entry.insert(0, config["input_value"])
+
+# Validate that only integers can be entered
+vcmd = (root.register(only_integer), '%S')
+title_entry.config(validate='key', validatecommand=vcmd)
+
+# Selection of the folder that will save the barcodes
+tk.Button(root, text="Select Destination Folder", command=select_folder, 
+          font=("Arial", 10), width=20).pack(pady=10)
+
+label_folder = tk.Label(root, text="No folder selected.", font=("Arial", 9), 
+                       wraplength=400, justify="center")
+label_folder.pack(pady=10)
+
+# Update configuration button
+tk.Button(root, text="Update Configuration", command=update_values, 
+          font=("Arial", 10), width=20).pack(pady=5)
+
+# Generate barcodes button (initially hidden)
+bntGenerator = tk.Button(root, text="Generate Barcodes", command=generate_barcodes, 
+                        font=("Arial", 11, "bold"), bg="lightgreen", width=20)
+bntGenerator.pack_forget()
+
+# Instructions
+instructions = tk.Label(root, text="\nInstructions:\n1. Enter the number of barcodes to generate\n2. Select destination folder\n3. Click 'Update Configuration'\n4. Click 'Generate Barcodes'", 
+                       font=("Arial", 9), justify="left", fg="gray")
+instructions.pack(pady=20)
+
+root.mainloop()
