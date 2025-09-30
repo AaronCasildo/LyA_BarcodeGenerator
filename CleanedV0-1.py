@@ -8,6 +8,9 @@ from tkinter import filedialog
 from tkinter import ttk
 import threading
 import time
+import subprocess
+import platform
+from datetime import datetime
 
 config = {
     "input_value": "1",
@@ -72,6 +75,17 @@ def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, 
         progress_window.destroy()
         messagebox.showinfo("Success", f"{nm} barcodes successfully generated and saved in {carpeta_destino}")
         
+        # Open the folder automatically based on OS
+        try:
+            if platform.system() == "Windows":
+                os.startfile(carpeta_destino)
+            elif platform.system() == "Darwin":  # macOS
+                subprocess.Popen(["open", carpeta_destino])
+            else:  # Linux and other Unix-like systems
+                subprocess.Popen(["xdg-open", carpeta_destino])
+        except Exception as e:
+            print(f"Could not open folder: {e}")
+            
     except Exception as e:
         progress_window.destroy()
         messagebox.showerror("Error", f"An error occurred: {str(e)}")
@@ -94,6 +108,16 @@ def generate_barcodes():
         messagebox.showerror("Error", "Please enter a valid number.")
         return
     
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    subfolder_name = f"Barcodes_{timestamp}"
+    final_destination = os.path.join(carpeta_destino, subfolder_name)
+    
+    try:
+        os.makedirs(final_destination, exist_ok=True)
+    except Exception as e:
+        messagebox.showerror("Error", f"Could not create subfolder: {str(e)}")
+        return
+     
     # Hide the generate button
     bntGenerator.pack_forget()
     
@@ -129,7 +153,7 @@ def generate_barcodes():
     # Start generation in a separate thread
     thread = threading.Thread(
         target=generate_barcodes_thread, 
-        args=(n, carpeta_destino, progress_window, progress_bar, status_label)
+        args=(n, final_destination, progress_window, progress_bar, status_label)
     )
     thread.daemon = True
     thread.start()
@@ -138,8 +162,6 @@ def generate_barcodes():
     def check_thread():
         if thread.is_alive():
             root.after(100, check_thread)
-        else:
-            bntGenerator.pack(pady=5)  # Re-enable the generate button
     
     check_thread()
 
