@@ -172,8 +172,20 @@ root.geometry("450x450")
 root.resizable(False, False)
 
 # Title
-title_label = tk.Label(root, text="Barcode Generator", font=("Arial", 16, "bold"))
-title_label.pack(pady=10)
+title_frame = tk.Frame(root, bg="#4CAF50", height=120)
+title_frame.pack(fill=tk.X, pady=0)
+title_frame.pack_propagate(False)
+
+icon_label = tk.Label(title_frame, text="📊", font=("Arial", 30), 
+                      fg="white",
+                      bg="#4CAF50")
+icon_label.pack(pady=(15, 0))
+
+title_label = tk.Label(title_frame, text="Barcode Generator", 
+                      font=("Arial", 18, "bold"), 
+                      fg="white", 
+                      bg="#4CAF50")
+title_label.pack(pady=(0, 15))
 
 # Selection of the quantity of barcodes to generate
 tk.Label(root, text="Quantity of barcodes to generate:", font=("Arial", 10)).pack(pady=5)
