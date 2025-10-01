@@ -58,7 +58,7 @@ def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, 
             codigo = EAN13(numero, writer=ImageWriter())
             
             # Save to specified folder
-            archive_name = f"Codigo_{i+1:03d}"
+            archive_name = f"Code_{i+1:03d}"
             ruta_completa = os.path.join(carpeta_destino, archive_name)
             codigo.save(ruta_completa)
             
