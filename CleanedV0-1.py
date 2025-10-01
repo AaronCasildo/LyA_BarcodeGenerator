@@ -39,7 +39,7 @@ def shorten_path(path, max_length=30):
         part_length = (max_length - 3) // 2
         return f"{path[:part_length]}...{path[-part_length:]}"
 
-def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, status_label):
+def generate_barcodes_thread(n, target_folder, progress_window, progress_bar, status_label):
     """Function to run barcode generation in a separate thread"""
     try:
         nm = int(n)
@@ -52,15 +52,15 @@ def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, 
             progress_window.update()
             
             # Generate random 12-digit number (EAN13 calculates the 13th)
-            numero = ''.join([str(random.randint(0, 9)) for _ in range(12)])
+            number = ''.join([str(random.randint(0, 9)) for _ in range(12)])
             
             # Create EAN13 barcode with PNG image
-            codigo = EAN13(numero, writer=ImageWriter())
+            barcode = EAN13(number, writer=ImageWriter())
             
             # Save to specified folder
             archive_name = f"Code_{i+1:03d}"
-            ruta_completa = os.path.join(carpeta_destino, archive_name)
-            codigo.save(ruta_completa)
+            full_destination_path = os.path.join(target_folder, archive_name)
+            barcode.save(full_destination_path)
             
         
         # Complete progress
@@ -73,16 +73,16 @@ def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, 
         
         # Close progress window and show success message
         progress_window.destroy()
-        messagebox.showinfo("Success", f"{nm} barcodes successfully generated and saved in {carpeta_destino}")
+        messagebox.showinfo("Success", f"{nm} barcodes successfully generated and saved in {target_folder}")
         
         # Open the folder automatically based on OS
         try:
             if platform.system() == "Windows":
-                os.startfile(carpeta_destino)
+                os.startfile(target_folder)
             elif platform.system() == "Darwin":  # macOS
-                subprocess.Popen(["open", carpeta_destino])
+                subprocess.Popen(["open", target_folder])
             else:  # Linux and other Unix-like systems
-                subprocess.Popen(["xdg-open", carpeta_destino])
+                subprocess.Popen(["xdg-open", target_folder])
         except Exception as e:
             print(f"Could not open folder: {e}")
             
@@ -92,10 +92,10 @@ def generate_barcodes_thread(n, carpeta_destino, progress_window, progress_bar, 
 
 def generate_barcodes():
     n = config['input_value']
-    carpeta_destino = config['setting']
+    target_folder = config['setting']
     
     # Validate inputs
-    if not carpeta_destino:
+    if not target_folder:
         messagebox.showerror("Error", "Please select a folder first.")
         return
     
@@ -110,7 +110,7 @@ def generate_barcodes():
     
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     subfolder_name = f"Barcodes_{timestamp}"
-    final_destination = os.path.join(carpeta_destino, subfolder_name)
+    final_destination = os.path.join(target_folder, subfolder_name)
     
     try:
         os.makedirs(final_destination, exist_ok=True)
