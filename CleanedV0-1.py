@@ -167,9 +167,9 @@ def generate_barcodes():
 
 # Main window
 root = tk.Tk()
-root.title("Barcode Generator - Configuration Window")
-root.geometry("450x450")
-root.resizable(False, False)
+root.title("Barcode Generator-beta")
+root.geometry("450x680")
+#root.resizable(False, False)
 
 # Title
 title_frame = tk.Frame(root, bg="#4CAF50", height=120)
@@ -187,27 +187,86 @@ title_label = tk.Label(title_frame, text="Barcode Generator",
                       bg="#4CAF50")
 title_label.pack(pady=(0, 15))
 
-# Selection of the quantity of barcodes to generate
-tk.Label(root, text="Quantity of barcodes to generate:", font=("Arial", 10)).pack(pady=5)
-title_entry = tk.Entry(root, font=("Arial", 10), width=20)
-title_entry.pack(pady=5)
+# Quantity section
+quantity_frame = tk.Frame(root, bg="#f5f7fa", height=100)
+quantity_frame.pack(fill=tk.X,)
+quantity_frame.pack_propagate(False)
+
+quantity_label = tk.Label(quantity_frame, 
+                         text="Quantity of barcodes to generate:", 
+                         font=("Arial", 11, "bold"),
+                         fg="#2c3e50",
+                         bg="#f5f7fa")
+quantity_label.pack(anchor="w", pady=(10, 0))
+
+# Entry with border
+entry_container = tk.Frame(quantity_frame, 
+                          bg="white", 
+                          highlightbackground="#dcdde1",
+                          highlightthickness=2)
+entry_container.pack(fill=tk.X)
+
+title_entry = tk.Entry(entry_container, 
+                      font=("Arial", 12), 
+                      fg="#2c3e50",
+                      bg="white",
+                      relief=tk.FLAT,
+                      bd=8)
+title_entry.pack(fill=tk.X, padx=5, pady=5)
 title_entry.insert(0, config["input_value"])
 
 # Validate that only integers can be entered
 vcmd = (root.register(only_integer), '%S')
 title_entry.config(validate='key', validatecommand=vcmd)
 
-# Selection of the folder that will save the barcodes
-tk.Button(root, text="Select Destination Folder", command=select_folder, 
-          font=("Arial", 10), width=20).pack(pady=10)
+# Folder selection section
+folder_frame = tk.Frame(root, bg="#f5f7fa")
+folder_frame.pack(fill=tk.X, padx=30, pady=20)
 
-label_folder = tk.Label(root, text="No folder selected.", font=("Arial", 9), 
-                       wraplength=400, justify="center")
-label_folder.pack(pady=10)
+folder_label_title = tk.Label(folder_frame, 
+                             text="Destination Folder:", 
+                             font=("Arial", 11, "bold"),
+                             fg="#2c3e50",
+                             bg="#f5f7fa")
+folder_label_title.pack(anchor="w", pady=(0, 8))
 
-# Update configuration button
-tk.Button(root, text="Update Configuration", command=update_values, 
-          font=("Arial", 10), width=20).pack(pady=5)
+# Button with modern style
+folder_button = tk.Button(folder_frame, 
+                         text="📁 Select Folder", 
+                         command=select_folder,
+                         font=("Arial", 11, "bold"),
+                         fg="white",
+                         bg="#4CAF50",  # Blue
+                         activebackground="#ff0000",  # Darker blue on click
+                         activeforeground="white",
+                         relief=tk.FLAT,
+                         bd=0,
+                         padx=20,
+                         pady=10,)
+folder_button.pack(pady=(0, 10))
+
+label_folder = tk.Label(folder_frame, 
+                       text="No folder selected", 
+                       font=("Arial", 9),
+                       fg="#000000",
+                       bg="#f5f7fa",
+                       wraplength=400)
+label_folder.pack(pady=(0, 20))
+
+# Update button
+update_button = tk.Button(folder_frame, 
+                         text="✓ Update Configuration", 
+                         command=update_values,
+                         font=("Arial", 11, "bold"),
+                         fg="white",
+                         bg="#4CAF50",
+                         activebackground="#ff0000",
+                         activeforeground="white",
+                         relief=tk.FLAT,
+                         bd=0,
+                         padx=20,
+                         pady=10,)
+update_button.pack()
 
 # Generate barcodes button (initially hidden)
 bntGenerator = tk.Button(root, text="Generate Barcodes", command=generate_barcodes, 
