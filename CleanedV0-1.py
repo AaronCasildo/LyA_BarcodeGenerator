@@ -169,7 +169,7 @@ def generate_barcodes():
 root = tk.Tk()
 root.title("Barcode Generator-beta")
 root.geometry("450x680")
-#root.resizable(False, False)
+root.resizable(False, False)
 
 # Title
 title_frame = tk.Frame(root, bg="#4CAF50", height=120)
@@ -269,8 +269,18 @@ update_button = tk.Button(folder_frame,
 update_button.pack()
 
 # Generate barcodes button (initially hidden)
-bntGenerator = tk.Button(root, text="Generate Barcodes", command=generate_barcodes, 
-                        font=("Arial", 11, "bold"), bg="lightgreen", width=20)
+bntGenerator = tk.Button(root, 
+                         text="Generate Barcodes", 
+                         command=generate_barcodes, 
+                         font=("Arial", 11, "bold"), 
+                         fg="white",
+                         bg="#4CAF50",
+                         activebackground="#ff0000",
+                         activeforeground="white",
+                         relief=tk.FLAT,
+                         bd=0,
+                         padx=20,
+                         pady=10,)
 bntGenerator.pack_forget()
 
 # Instructions
